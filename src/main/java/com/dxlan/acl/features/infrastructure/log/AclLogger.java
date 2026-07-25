@@ -1,4 +1,4 @@
-package com.dxlan.acl.features.shared.log;
+package com.dxlan.acl.features.infrastructure;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -12,7 +12,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public final class AclLogger {
 
-    // 1. 限流防禦設定：每 10 秒鐘計數器
     private static final int MAX_ALLOWED_LOGS = 5;
     private static final AtomicInteger logCounter = new AtomicInteger(0);
 
@@ -21,7 +20,7 @@ public final class AclLogger {
     }
 
     private static String getCurrentTimeStamp() {
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
+        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")
                 .format(new Date());
     }
 

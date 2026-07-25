@@ -3,7 +3,7 @@ package com.dxlan.acl.features.notification;
 import com.dxlan.acl.features.notification.commands.sendnotification.NotificationSender;
 import com.dxlan.acl.features.notification.commands.sendnotification.SendNotificationHandler;
 import com.dxlan.acl.features.notification.commands.sendnotification.LegacyPlatformNotificationSender;
-import com.dxlan.acl.features.shared.log.AclLogger;
+import com.dxlan.acl.features.infrastructure.log.AclLogger;
 
 public final class ClientNotificationContainer {
 
@@ -27,12 +27,12 @@ public final class ClientNotificationContainer {
     public static void initialize() {
         AclLogger.info(
                 ClientNotificationContainer.class,
-                "Initializing ClientNotificationContainer...\n"
+                "Initializing ClientNotificationContainer..."
         );
         if (getInstance() != null) {
             AclLogger.info(
                     ClientNotificationContainer.class,
-                    "ClientNotificationContainer initialized successfully.\n"
+                    "ClientNotificationContainer initialized successfully."
             );
         }
     }

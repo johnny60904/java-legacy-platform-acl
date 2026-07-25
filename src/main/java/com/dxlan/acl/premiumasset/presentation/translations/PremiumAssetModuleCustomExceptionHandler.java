@@ -3,7 +3,7 @@ package com.dxlan.acl.premiumasset.presentation.translations;
 import com.dxlan.acl.features.notification.ClientNotification;
 import com.dxlan.acl.features.notification.common.enums.ChatMessageType;
 import com.dxlan.acl.features.shared.domain.integrities.violations.InvariantRuleViolationException;
-import com.dxlan.acl.features.shared.log.AclLogger;
+import com.dxlan.acl.features.infrastructure.log.AclLogger;
 import com.dxlan.acl.features.shared.validations.taxonomy.InvalidCommandException;
 import com.dxlan.acl.features.shared.validations.taxonomy.InvalidQueryException;
 import com.dxlan.acl.premiumasset.domain.aggregate.AclPremiumAsset;

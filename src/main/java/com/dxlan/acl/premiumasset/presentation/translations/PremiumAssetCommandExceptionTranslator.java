@@ -1,6 +1,6 @@
 package com.dxlan.acl.premiumasset.presentation.translations;
 
-import com.dxlan.acl.features.shared.log.AclLogger;
+import com.dxlan.acl.features.infrastructure.log.AclLogger;
 import com.dxlan.acl.features.shared.text.TextDivider;
 import com.dxlan.acl.features.shared.validations.taxonomy.InvalidCommandException;
 import com.dxlan.acl.premiumasset.application.commands.extendexpiration.ExtendPremiumAssetExpirationByIdCommand;

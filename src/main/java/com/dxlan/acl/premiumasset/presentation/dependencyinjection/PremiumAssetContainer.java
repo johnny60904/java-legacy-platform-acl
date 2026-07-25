@@ -1,6 +1,6 @@
 package com.dxlan.acl.premiumasset.presentation.dependencyinjection;
 
-import com.dxlan.acl.features.shared.log.AclLogger;
+import com.dxlan.acl.features.infrastructure.log.AclLogger;
 import com.dxlan.acl.premiumasset.application.commands.expireexpiration.ExpirePremiumAssetExpirationHandler;
 import com.dxlan.acl.premiumasset.application.commands.extendexpiration.ExtendPremiumAssetExpirationHandler;
 import com.dxlan.acl.premiumasset.application.commands.reconcileexpiration.ReconcilePremiumAssetExpirationHandler;
@@ -39,12 +39,12 @@ public final class PremiumAssetContainer {
     public static void initialize() {
         AclLogger.info(
                 PremiumAssetContainer.class,
-                "Initializing PremiumAssetContainer...\n"
+                "Initializing PremiumAssetContainer..."
         );
         if (getInstance() != null) {
             AclLogger.info(
                     PremiumAssetContainer.class,
-                    "PremiumAssetContainer initialized successfully.\n"
+                    "PremiumAssetContainer initialized successfully."
             );
         }
     }

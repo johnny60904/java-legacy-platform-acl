@@ -3,7 +3,7 @@ package com.dxlan.acl.features.inventory;
 import com.dxlan.acl.features.inventory.commands.synchronizeasset.AssetInventorySynchronizer;
 import com.dxlan.acl.features.inventory.commands.synchronizeasset.LegacyPlatformInventorySynchronizer;
 import com.dxlan.acl.features.inventory.commands.synchronizeasset.SynchronizeAssetInventoryHandler;
-import com.dxlan.acl.features.shared.log.AclLogger;
+import com.dxlan.acl.features.infrastructure.log.AclLogger;
 
 public final class AssetInventoryContainer {
 
@@ -27,12 +27,12 @@ public final class AssetInventoryContainer {
     public static void initialize() {
         AclLogger.info(
                 AssetInventoryContainer.class,
-                "Initializing AssetInventoryContainer...\n"
+                "Initializing AssetInventoryContainer..."
         );
         if (getInstance() != null) {
             AclLogger.info(
                     AssetInventoryContainer.class,
-                    "AssetInventoryContainer initialized successfully.\n"
+                    "AssetInventoryContainer initialized successfully."
             );
         }
     }

@@ -1,7 +1,7 @@
 package com.dxlan.acl.premiumasset.presentation.translations;
 
 import com.dxlan.acl.features.shared.domain.integrities.violations.InvariantRuleViolationException;
-import com.dxlan.acl.features.shared.log.AclLogger;
+import com.dxlan.acl.features.infrastructure.log.AclLogger;
 import com.dxlan.acl.features.shared.text.TextDivider;
 import com.dxlan.acl.premiumasset.domain.aggregate.AclPremiumAsset;
 import com.dxlan.acl.premiumasset.domain.entities.TimedPremiumAsset;

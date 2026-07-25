@@ -3,7 +3,7 @@ package com.dxlan.acl.features.userprofile;
 import com.dxlan.acl.features.userprofile.queries.getusersessiondetails.GetUserSessionDetailsHandler;
 import com.dxlan.acl.features.userprofile.queries.getusersessiondetails.UserSessionGateway;
 import com.dxlan.acl.features.userprofile.queries.getusersessiondetails.LegacyPlatformUserSessionGateway;
-import com.dxlan.acl.features.shared.log.AclLogger;
+import com.dxlan.acl.features.infrastructure.log.AclLogger;
 
 public final class UserIdentityProfileContainer {
 
@@ -26,12 +26,12 @@ public final class UserIdentityProfileContainer {
     public static void initialize() {
         AclLogger.info(
                 UserIdentityProfileContainer.class,
-                "Initializing UserIdentityProfileContainer...\n"
+                "Initializing UserIdentityProfileContainer..."
         );
         if (getInstance() != null) {
             AclLogger.info(
                     UserIdentityProfileContainer.class,
-                    "UserIdentityProfileContainer initialized successfully.\n"
+                    "UserIdentityProfileContainer initialized successfully."
             );
         }
     }

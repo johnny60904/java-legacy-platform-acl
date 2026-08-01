@@ -51,4 +51,7 @@ replay_pid*
 *.zip
 *.tar.gz
 *.rar
-*.jar 
+*.jar
+
+### Customization
+README-Gemini.md

@@ -1,249 +1,649 @@
 # Design Decisions
 
-## Overview
+**Version:** 2.0
 
-This document records the primary engineering decisions reflected in the repository.
+**Status:** Stable
 
-Each decision explains the problem being addressed, the chosen solution, the resulting trade-offs, and the observed outcome.
-
-The purpose of this document is to describe architectural reasoning rather than implementation details.
+**Document Type:** Architectural Decision Record (ADR)
 
 ---
 
-# Decision 1 — Adopt an Anti-Corruption Layer
+# Purpose
 
-## Problem
+This document records the major architectural decisions that define the repository.
 
-The surrounding legacy platform exposes platform-specific models, behaviors, and implementation details that should not directly influence the domain model.
+Rather than documenting implementation details, each decision explains the engineering rationale that shaped the architecture.
 
-Allowing these concepts to propagate throughout the application would increase coupling and reduce maintainability.
+Every decision follows the same structure:
 
-## Decision
+```text
+Context
 
-Introduce an Anti-Corruption Layer that separates domain concepts from legacy platform representations.
+↓
 
-External interactions are translated before entering the domain model.
+Problem
 
-## Trade-off
+↓
 
-Translation introduces additional code and mapping responsibilities.
+Decision
 
-However, it prevents legacy implementation details from leaking into business logic.
+↓
 
-## Outcome
+Consequences
 
-Business logic remains isolated from the surrounding platform while integration responsibilities remain localized.
+↓
 
----
+Trade-offs
+```
 
-# Decision 2 — Combine Multiple Architectural Styles
-
-## Problem
-
-No single architectural style adequately addresses every responsibility required by the repository.
-
-The system requires domain modeling, dependency management, feature organization, and legacy integration simultaneously.
-
-## Decision
-
-Combine Domain-Driven Design, Clean Architecture, Vertical Slice Architecture, CQRS, and the Anti-Corruption Layer.
-
-Each architectural style addresses a different concern.
-
-## Trade-off
-
-The architecture introduces additional concepts that require consistent organization and documentation.
-
-## Outcome
-
-Responsibilities remain clearly separated while architectural concerns complement rather than compete with one another.
+The objective is to explain why the repository is organized as it is, rather than how individual classes are implemented.
 
 ---
 
-# Decision 3 — Use Explicit Manual Dependency Composition
+# ADR-001
+## Hybrid Architecture
 
-## Problem
+### Context
 
-The surrounding execution environment does not provide dependency injection infrastructure.
+The repository integrates with a large legacy platform while also attempting to maintain clear architectural boundaries.
 
-Introducing one would require invasive modifications throughout the host platform.
-
-## Decision
-
-Construct dependencies explicitly within module-specific Container classes.
-
-Object graphs are assembled manually during application initialization.
-
-## Trade-off
-
-Manual composition requires additional wiring code and places greater responsibility on composition roots.
-
-## Outcome
-
-Dependency relationships remain deterministic, observable, and compatible with the surrounding execution environment.
+No single architectural style sufficiently addresses all engineering concerns.
 
 ---
 
-# Decision 4 — Use Module Composition Roots
+### Problem
 
-## Problem
+A purely layered architecture does not adequately isolate legacy integration.
 
-Application dependencies require centralized construction while remaining independent from framework-specific infrastructure.
+A pure Vertical Slice architecture lacks explicit business modeling.
 
-## Decision
-
-Each module defines a dedicated Container class that serves as its composition root.
-
-Container classes construct dependencies, wire application handlers, and expose initialized services.
-
-## Trade-off
-
-Composition logic must be maintained explicitly as the application evolves.
-
-## Outcome
-
-Object construction remains centralized, visible, and straightforward to inspect without introducing runtime dependency resolution.
+Traditional DDD alone does not address application workflow organization.
 
 ---
 
-# Decision 5 — Expose Stable Application Facades
+### Decision
 
-## Problem
+The repository combines several complementary architectural styles:
 
-The surrounding legacy platform requires stable entry points into the module while internal implementation may continue evolving.
+- Domain-Driven Design
+- Clean Architecture
+- Vertical Slice Architecture
+- CQRS (Application Layer)
+- Anti-Corruption Layer
 
-## Decision
-
-Expose public operations through static facade classes located within the Presentation Layer.
-
-These facades coordinate application workflows without implementing business rules.
-
-## Trade-off
-
-Presentation classes become responsible for coordinating application entry while remaining intentionally lightweight.
-
-## Outcome
-
-The surrounding platform interacts through a stable integration boundary while internal architecture remains flexible.
+Each architecture serves a distinct responsibility.
 
 ---
 
-# Decision 6 — Separate Business Rules from Infrastructure
+### Consequences
 
-## Problem
+Business logic remains isolated.
 
-Embedding business rules within technical implementation increases coupling and complicates long-term maintenance.
+Legacy integration remains localized.
 
-## Decision
+Application workflows remain explicit.
 
-Keep business behavior within the Domain Layer while Infrastructure provides technical implementations required by the application.
-
-## Trade-off
-
-Additional abstractions are required between domain and infrastructure.
-
-## Outcome
-
-Business rules remain independent from persistence, platform integration, and other implementation details.
+Repository growth remains modular.
 
 ---
 
-# Decision 7 — Apply CQRS Within the Application Layer
+### Trade-offs
 
-## Problem
+Understanding the repository requires familiarity with multiple architectural paradigms.
 
-Commands that modify state and queries that retrieve information represent different application responsibilities.
-
-Combining them within identical application workflows increases complexity.
-
-## Decision
-
-Separate command and query responsibilities within the Application Layer.
-
-CQRS is applied only to application orchestration.
-
-## Trade-off
-
-The number of application types increases because commands and queries are represented independently.
-
-## Outcome
-
-Application workflows become more explicit while avoiding unnecessary architectural complexity such as event sourcing.
+The resulting architecture is more sophisticated than conventional layered applications but provides clearer long-term separation of responsibilities.
 
 ---
 
-# Decision 8 — Preserve Explicit Dependency Direction
+# ADR-002
+## Repository Shared Kernel
 
-## Problem
+### Context
 
-Manual dependency composition can obscure architectural boundaries if dependency direction is not consistently maintained.
+Multiple business modules require common engineering capabilities.
 
-## Decision
-
-Preserve inward dependency flow regardless of how objects are constructed.
-
-Presentation depends on Application.
-
-Application depends on Domain.
-
-Infrastructure implements abstractions defined by higher layers.
-
-## Trade-off
-
-Architectural discipline must be maintained manually rather than enforced by framework conventions.
-
-## Outcome
-
-Clear dependency boundaries remain consistent throughout the repository.
+Duplicating engineering infrastructure across modules would increase maintenance costs.
 
 ---
 
-# Decision 9 — Organize Shared Capabilities Separately
+### Problem
 
-## Problem
-
-Shared technical capabilities are required by multiple areas of the repository.
-
-Embedding them inside individual domain modules would create unnecessary duplication.
-
-## Decision
-
-Provide shared functionality through the `features` package while keeping business-specific implementation within domain modules.
-
-## Trade-off
-
-Shared packages require careful ownership to prevent unrelated responsibilities from accumulating.
-
-## Outcome
-
-Reusable infrastructure remains centralized while domain modules retain clear ownership of business behavior.
+Reusable engineering concerns must be shared without coupling business domains.
 
 ---
 
-# Decision 10 — Treat Environmental Constraints as First-Class Design Inputs
+### Decision
 
-## Problem
+A Repository Shared Kernel provides reusable engineering facilities including:
 
-Architectural documentation often presents implementation choices as personal preference even when they are dictated by external constraints.
+- defensive programming
+- structured diagnostics
+- infrastructure services
+- engineering abstractions
+- shared vertical slices
 
-This can misrepresent the reasoning behind the architecture.
+Business behavior remains outside the Shared Kernel.
 
-## Decision
+---
 
-Document environmental constraints explicitly and describe architectural decisions as responses to those constraints.
+### Consequences
 
-## Trade-off
+Engineering capabilities remain centralized.
 
-The documentation emphasizes context and limitations rather than presenting architecture as universally applicable.
+Business modules remain independent.
 
-## Outcome
+Repository-wide consistency improves.
 
-Readers can evaluate engineering decisions within the context in which they were made instead of assuming they represent general architectural recommendations.
+---
+
+### Trade-offs
+
+The Shared Kernel must remain disciplined.
+
+Only repository-wide engineering capabilities belong within it.
+
+Business behavior must never migrate into the Shared Kernel.
+
+---
+
+# ADR-003
+## Independent Business Modules
+
+### Context
+
+The repository is intended to support multiple business capabilities.
+
+Each capability should evolve independently.
+
+---
+
+### Problem
+
+Direct module dependencies increase coupling and reduce long-term maintainability.
+
+---
+
+### Decision
+
+Business modules never depend directly upon one another.
+
+Reusable functionality is obtained exclusively through the Repository Shared Kernel.
+
+---
+
+### Consequences
+
+Modules remain independently evolvable.
+
+Repository growth occurs horizontally rather than through increasing coupling.
+
+---
+
+### Trade-offs
+
+Some engineering capabilities may initially appear duplicated before being promoted into the Shared Kernel.
+
+Promotion should occur only after genuine repository-wide reuse becomes evident.
+
+---
+
+# ADR-004
+## Shared Vertical Slices
+
+### Context
+
+Several application capabilities are reusable across multiple business modules but do not represent business domains themselves.
+
+---
+
+### Problem
+
+These capabilities require application workflows but do not justify complete DDD modules.
+
+---
+
+### Decision
+
+Reusable application capabilities are implemented as Shared Vertical Slices.
+
+Examples include:
+
+- inventory synchronization
+- notification
+- user profile retrieval
+
+These slices expose stable public APIs while remaining independent of business domains.
+
+---
+
+### Consequences
+
+Application behavior becomes reusable.
+
+Business modules avoid infrastructure duplication.
+
+Shared capabilities remain independently maintainable.
+
+---
+
+### Trade-offs
+
+Shared Vertical Slices intentionally omit a Domain Layer.
+
+Their purpose is reusable application behavior rather than business modeling.
+
+---
+
+# ADR-005
+## Explicit Dependency Composition
+
+### Context
+
+The surrounding execution environment does not provide runtime dependency injection.
+
+---
+
+### Problem
+
+Dependency graphs must still remain deterministic and maintainable.
+
+---
+
+### Decision
+
+Dependencies are composed explicitly through dedicated Container classes.
+
+Each architectural unit owns its own Composition Root.
+
+No runtime discovery mechanisms are employed.
+
+---
+
+### Consequences
+
+Dependency graphs remain explicit.
+
+Construction order remains deterministic.
+
+Dependencies remain fully observable.
+
+---
+
+### Trade-offs
+
+Manual composition requires additional wiring code.
+
+However, all dependencies remain visible within the source code.
+
+---
+
+# ADR-006
+## Stateless Infrastructure Services
+
+### Context
+
+Most implementation classes do not require mutable state.
+
+---
+
+### Problem
+
+Repeated object creation introduces unnecessary allocation while mutable services complicate reasoning about execution.
+
+---
+
+### Decision
+
+Implementation classes are generally designed as:
+
+- stateless
+- immutable after construction
+- singleton using the Bill Pugh Holder pattern
+
+Stateful implementations are introduced only when required by their responsibility.
+
+---
+
+### Consequences
+
+Object lifetime becomes predictable.
+
+Allocation overhead is minimized.
+
+Thread safety becomes easier to reason about.
+
+---
+
+### Trade-offs
+
+Singletons should not become global state.
+
+They remain implementation lifetime decisions rather than architectural communication mechanisms.
+
+---
+
+# ADR-007
+## Static Public Facades
+
+### Context
+
+The surrounding legacy platform invokes repository functionality directly.
+
+No runtime dependency injection exists for public entry points.
+
+---
+
+### Problem
+
+Public APIs must remain stable while avoiding unnecessary object construction.
+
+---
+
+### Decision
+
+Presentation Layer entry points are implemented as static facades.
+
+Each facade performs:
+
+- input validation
+- command/query construction
+- handler delegation
+- exception translation
+
+Business behavior remains outside the facade.
+
+---
+
+### Consequences
+
+Repository integration remains simple.
+
+Public APIs remain stable.
+
+Application orchestration remains centralized.
+
+---
+
+### Trade-offs
+
+Static facades are appropriate only because dependency composition occurs elsewhere.
+
+They should not contain business logic.
+
+---
+
+# ADR-008
+## Structured Diagnostic Framework
+
+### Context
+
+Conventional exception hierarchies frequently communicate insufficient engineering information.
+
+---
+
+### Problem
+
+Engineering investigation requires significantly more context than exception messages alone provide.
+
+---
+
+### Decision
+
+Failures are represented through structured diagnostic models describing:
+
+- module
+- category
+- target
+- cause
+- rule
+- invariant
+- error code
+
+Diagnostic metadata becomes part of the architectural model.
+
+---
+
+### Consequences
+
+Operational observability improves significantly.
+
+Engineering failures become easier to investigate.
+
+Diagnostic behavior remains consistent across modules.
+
+---
+
+### Trade-offs
+
+The diagnostic model introduces additional architectural types.
+
+The increased modeling effort is justified by substantially improved maintainability.
+
+---
+
+# ADR-009
+## Boundary Defense
+
+### Context
+
+Architectural correctness and business correctness represent different engineering concerns.
+
+---
+
+### Problem
+
+Treating every invalid condition as business validation obscures architectural failures.
+
+---
+
+### Decision
+
+Boundary Defense executes before Application Validation and Domain Integrity.
+
+Boundary Defense verifies architectural assumptions rather than business rules.
+
+---
+
+### Consequences
+
+Architectural failures become immediately identifiable.
+
+Business execution begins only after engineering assumptions have been verified.
+
+---
+
+### Trade-offs
+
+An additional validation stage increases architectural complexity but significantly improves failure classification.
+
+---
+
+# ADR-010
+## Exception Translation
+
+### Context
+
+Engineering diagnostics and user-facing communication serve different audiences.
+
+---
+
+### Problem
+
+Exposing engineering failures directly would unnecessarily leak repository implementation details.
+
+---
+
+### Decision
+
+Presentation Layers own exception translation.
+
+Structured engineering diagnostics remain available internally while external consumers receive stable, simplified responses.
+
+---
+
+### Consequences
+
+Integration behavior remains stable.
+
+Engineering diagnostics remain comprehensive.
+
+Architectural boundaries remain protected.
+
+---
+
+### Trade-offs
+
+Some internal diagnostic detail is intentionally hidden from external consumers.
+
+This separation improves long-term compatibility.
+
+---
+
+# ADR-011
+## Stub Platform
+
+### Context
+
+The original execution environment cannot be distributed as part of the public repository.
+
+---
+
+### Problem
+
+Repository architecture requires surrounding platform context in order to remain understandable.
+
+---
+
+### Decision
+
+A simplified stub platform reproduces only the execution contracts required by the repository.
+
+The stub preserves:
+
+- startup flow
+- dependency relationships
+- integration boundaries
+
+without reproducing the complete original platform.
+
+---
+
+### Consequences
+
+The repository remains self-contained.
+
+Architectural behavior remains demonstrable.
+
+Repository publication becomes practical.
+
+---
+
+### Trade-offs
+
+The stub platform intentionally omits unrelated production behavior.
+
+Its purpose is architectural context rather than platform simulation.
+
+---
+
+# ADR-012
+## Repository Sanitization
+
+### Context
+
+The repository originates from an existing proprietary legacy environment.
+
+---
+
+### Problem
+
+The repository must preserve engineering value while removing platform-specific identity.
+
+---
+
+### Decision
+
+The public repository sanitizes:
+
+- package names
+- type names
+- domain terminology
+- platform terminology
+- surrounding system structure
+
+Architectural behavior remains equivalent.
+
+Only naming and contextual information are generalized.
+
+---
+
+### Consequences
+
+The repository becomes suitable for public publication.
+
+Engineering decisions remain faithfully represented.
+
+---
+
+### Trade-offs
+
+Some domain context is intentionally abstracted.
+
+Readers should evaluate the repository as an architectural reference implementation rather than a reproduction of the original platform.
+
+---
+
+# ADR-013
+## Evolution Strategy
+
+### Context
+
+The repository architecture is expected to expand over time.
+
+---
+
+### Problem
+
+Repository growth should not require architectural restructuring.
+
+---
+
+### Decision
+
+Future capabilities should be introduced as independent DDD modules following the existing architectural model.
+
+Shared engineering capabilities should be promoted into the Repository Shared Kernel only when repository-wide reuse has been established.
+
+---
+
+### Consequences
+
+Repository evolution remains predictable.
+
+Architectural consistency is preserved.
+
+New business capabilities integrate without increasing coupling.
+
+---
+
+### Trade-offs
+
+Architectural discipline is required to prevent premature abstraction or inappropriate sharing.
 
 ---
 
 # Summary
 
-The repository emphasizes explicit dependency composition, stable architectural boundaries, and clear separation of responsibilities while operating within the constraints imposed by an existing legacy Java platform.
+The architectural decisions recorded in this document are driven primarily by execution constraints, long-term maintainability, and explicit architectural boundaries.
 
-Each decision reflects a balance between architectural principles and practical integration requirements, with environmental constraints treated as primary design inputs rather than implementation afterthoughts.
+Together they establish a repository that emphasizes:
+
+- deterministic composition
+- modular evolution
+- reusable engineering capabilities
+- explicit dependency direction
+- structured diagnostics
+- stable integration
+- business isolation
+
+These decisions form the architectural foundation upon which future repository growth is expected to build.

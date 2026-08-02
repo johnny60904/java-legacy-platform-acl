@@ -1,300 +1,441 @@
 # Package Guide
 
-## Overview
+**Version:** 2.0
 
-The repository is organized around a combination of Domain-Driven Design (DDD), Clean Architecture, and feature-oriented organization.
+**Status:** Stable
 
-At the highest level, the repository is divided into two primary areas:
+**Document Type:** Repository Structure Specification
+
+---
+
+# 1. Purpose
+
+This document describes the package organization of the repository.
+
+Rather than serving as an API reference or source code index, this guide explains the architectural responsibility of each package and the relationships between them.
+
+The package structure reflects repository architecture.
+
+Consequently, packages are organized according to architectural responsibility rather than implementation convenience.
+
+---
+
+# 2. Repository Organization
+
+At the highest level, the repository is divided into three major architectural regions.
 
 ```text
-com.dxlan.acl
+Repository
 │
-├── features
+├── Repository Shared Kernel
 │
-└── premiumasset
+├── DDD Modules
+│
+└── Legacy Platform Stub
 ```
 
-The `features` package provides reusable capabilities shared across the repository.
-
-The `premiumasset` package represents a complete Domain-Driven Design module implementing the repository's primary business capability.
+Each region exists for a different engineering purpose.
 
 ---
 
-# Package Organization
+# 3. Repository Shared Kernel
+
+The `features` package represents the Repository Shared Kernel.
+
+It provides reusable engineering capabilities shared by every DDD module.
+
+The Shared Kernel intentionally contains repository-wide engineering facilities rather than business functionality.
 
 ```text
-com.dxlan.acl
+features
 │
-├── features
-│   ├── infrastructure
-│   ├── inventory
-│   ├── notification
-│   ├── shared
-│   └── userprofile
+├── shared
 │
-└── premiumasset
-    ├── application
-    ├── domain
-    ├── infrastructure
-    └── presentation
+├── infrastructure
+│
+├── inventory
+│
+├── notification
+│
+└── userprofile
 ```
 
-Each package has a distinct responsibility.
+Business modules depend upon the Shared Kernel.
 
-The repository intentionally separates reusable platform capabilities from domain-specific implementation.
-
----
-
-# Top-Level Packages
-
-## features
-
-The `features` package contains reusable functionality shared throughout the repository.
-
-It does not represent a single Domain-Driven Design module.
-
-Instead, it provides shared infrastructure, reusable components, and feature-oriented capabilities that support one or more business modules.
-
-Responsibilities include:
-
-- shared infrastructure
-- reusable utilities
-- feature-oriented components
-- common abstractions
-- cross-cutting support
-
-Packages within `features` remain independent from the internal implementation of individual domain modules whenever practical.
+The Shared Kernel never depends upon business modules.
 
 ---
 
-## premiumasset
+# 4. features.shared
 
-The `premiumasset` package represents the primary Domain-Driven Design module.
+`features.shared` contains reusable engineering components used throughout the repository.
 
-It demonstrates the repository's layered architecture and serves as the reference implementation for the architectural patterns adopted throughout the project.
-
-The module follows Clean Architecture by separating:
-
-- Presentation
-- Application
-- Domain
-- Infrastructure
-
-Each layer has clearly defined responsibilities and dependency direction.
-
----
-
-# features Package
-
-## features.shared
-
-The `shared` package contains components intended for reuse across multiple business areas.
+Unlike conventional utility packages, this package contains architectural building blocks rather than unrelated helper methods.
 
 Typical responsibilities include:
 
-- shared contracts
-- shared utilities
-- reusable value types
-- common abstractions
-- shared constants
+- reusable abstractions
+- defensive programming
+- structured diagnostics
+- validation infrastructure
+- reusable engineering utilities
+- common metadata
+- reusable functional interfaces
+- repository-wide engineering facilities
 
-Code within this package should remain broadly applicable and avoid dependencies on individual domain modules.
+This package represents the engineering foundation of the repository.
 
 ---
 
-## features.infrastructure
+# 5. Defensive Programming
 
-The `infrastructure` package provides shared technical capabilities required across the repository.
+Several packages within `features.shared` exist specifically to support defensive programming.
+
+Typical capabilities include:
+
+- boundary verification
+- guard APIs
+- reusable validation primitives
+- engineering metadata
+- repository-wide defensive contracts
+
+These facilities validate engineering assumptions before business execution begins.
+
+They are intentionally independent from business rules.
+
+---
+
+# 6. Structured Diagnostics
+
+The Shared Kernel also contains reusable diagnostic infrastructure.
+
+These packages support:
+
+- structured validation
+- domain integrity reporting
+- engineering metadata
+- diagnostic taxonomy
+- reusable failure models
+
+Diagnostic facilities remain reusable across all DDD modules.
+
+Individual modules contribute module-specific rules while sharing a common diagnostic architecture.
+
+---
+
+# 7. Engineering Utilities
+
+The Shared Kernel contains reusable engineering utilities supporting repository-wide implementation.
 
 Examples include:
 
-- logging support
-- infrastructure utilities
+- time abstractions
+- numeric abstractions
+- functional interfaces
+- formatting utilities
+- calculation utilities
 
-This package contains implementation details that are shared between multiple areas of the repository.
-
-Business logic should not reside here.
-
----
-
-## features.inventory
-
-The `inventory` package groups functionality related to the inventory feature slice.
-
-Responsibilities remain localized to inventory-specific concerns without exposing unrelated implementation details to other features.
+These capabilities improve implementation consistency while remaining independent of business domains.
 
 ---
 
-## features.notification
+# 8. features.infrastructure
 
-The `notification` package groups functionality associated with notification-related operations.
+`features.infrastructure` contains repository-wide infrastructure services.
 
-The package represents a feature-oriented boundary rather than a traditional technical layer.
+These services support repository operation rather than business behavior.
 
----
+Typical responsibilities include:
 
-## features.userprofile
+- logging
+- reusable infrastructure facilities
+- repository-wide technical services
 
-The `userprofile` package contains functionality associated with user profile operations.
+Infrastructure within this package may be consumed by any DDD module.
 
-Feature-specific implementation remains encapsulated within this package whenever practical.
-
----
-
-# premiumasset Module
-
-The `premiumasset` module demonstrates a complete layered implementation following Domain-Driven Design and Clean Architecture.
-
-```text
-premiumasset
-│
-├── presentation
-├── application
-├── domain
-└── infrastructure
-```
-
-Dependency direction always points toward the domain.
+Business modules never own these capabilities.
 
 ---
 
-# Presentation Layer
+# 9. Shared Vertical Slices
 
-```text
-premiumasset.presentation
-```
+Several packages under `features` implement reusable Vertical Slices.
 
-The Presentation Layer provides stable public entry points for the surrounding legacy platform.
+These slices encapsulate reusable application capabilities rather than business domains.
 
-It is not a web layer.
+Unlike DDD modules, Shared Vertical Slices do not contain business rules.
 
-It is not tied to HTTP.
-
-It does not implement REST endpoints.
-
-Presentation classes primarily expose static facade methods responsible for:
-
-- initial parameter validation
-- command and query construction
-- delegation to application handlers
-- module-level exception routing where applicable
-
-Presentation classes intentionally avoid embedding business rules.
+Instead, they provide reusable operations shared by multiple modules.
 
 ---
 
-# Application Layer
+# 10. features.inventory
 
-```text
-premiumasset.application
-```
+The inventory slice encapsulates reusable inventory synchronization capabilities.
 
-The Application Layer coordinates use cases.
+Typical responsibilities include:
+
+- inventory synchronization command
+- inventory synchronization handler
+- platform adapter
+- facade APIs
+- dependency composition
+
+The slice abstracts inventory synchronization behind stable repository contracts.
+
+Business modules invoke these contracts without depending upon platform-specific implementations.
+
+---
+
+# 11. features.notification
+
+The notification slice provides reusable client notification capabilities.
 
 Responsibilities include:
 
-- command handling
-- query handling
-- application workflows
-- coordination between repositories, gateways, and domain objects
-- mapping between external representations and domain concepts
+- notification sending command
+- notification sending handler
+- platform notification adapter
+- stable facade APIs
+- dependency composition
 
-CQRS is implemented within this layer by separating commands from queries.
-
-Business rules remain within the Domain Layer.
+The slice centralizes notification behavior so that business modules do not directly interact with platform messaging facilities.
 
 ---
 
-# Domain Layer
+# 12. features.userprofile
+
+The user profile slice encapsulates reusable read operations for user-related information.
+
+Responsibilities include:
+
+- query object
+- query handler
+- platform gateway
+- facade APIs
+- dependency composition
+
+This slice represents a reusable application capability rather than a business domain.
+
+---
+
+# 13. Shared Vertical Slice Architecture
+
+Every Shared Vertical Slice follows the same architectural organization.
 
 ```text
-premiumasset.domain
+Slice
+│
+├── Commands / Queries
+│        │
+│        ├── Command / Query
+│        │
+│        ├── Command / Query Handler
+│        │
+│        ├── Interface
+│        │
+│        └── Implementation
+│
+├── Facade
+│
+└── Container
 ```
 
-The Domain Layer contains the business model.
+The slice owns its own dependency composition and public facade.
+
+Unlike DDD modules, these slices do not model business concepts.
+
+---
+
+# 14. DDD Modules
+
+Business capabilities reside outside the Repository Shared Kernel.
+
+Each DDD module owns its own complete Clean Architecture implementation.
+
+Typical organization includes:
+
+```text
+Module
+│
+├── presentation
+│        │
+│        ├── facde
+│        │
+│        └── container
+│
+├── application
+│
+├── domain
+│
+└── infrastructure
+```
+
+Each module remains independently evolvable.
+
+---
+
+# 15. Presentation Package
+
+The Presentation package defines the module's public integration boundary.
 
 Typical responsibilities include:
+
+- public facade APIs
+- request orchestration
+- command construction
+- query construction
+- exception translation
+
+Presentation packages intentionally avoid business logic.
+
+---
+
+# 16. Application Package
+
+The Application package coordinates use cases.
+
+Typical contents include:
+
+- command handlers
+- query handlers
+- application services
+- application validation
+
+The Application Layer coordinates execution while delegating business correctness to the Domain Layer.
+
+---
+
+# 17. Domain Package
+
+The Domain package contains business concepts.
+
+Typical contents include:
 
 - entities
 - value objects
 - domain services
-- repository abstractions
-- business validation
-- domain-specific policies
+- specifications
+- invariants
+- domain policies
 
-The Domain Layer remains independent from infrastructure implementation.
+The Domain Layer owns business correctness.
 
-No infrastructure concerns should leak into this package.
+Infrastructure concerns remain outside this package.
 
 ---
 
-# Infrastructure Layer
+# 18. Infrastructure Package
+
+Infrastructure packages adapt external systems into repository abstractions.
+
+Typical implementations include:
+
+- repositories
+- gateways
+- persistence adapters
+- legacy platform integrations
+
+Infrastructure satisfies interfaces defined by higher architectural layers.
+
+---
+
+# 19. Presentation Translation
+
+Modules may contain dedicated translation packages responsible for converting structured engineering failures into stable integration responses.
+
+These packages belong to the Presentation Layer because translation represents an integration concern rather than a business concern.
+
+Translation packages remain independent from domain logic and infrastructure implementations.
+
+---
+
+# 20. Composition Packages
+
+Each architectural unit owns a dedicated Composition Root.
+
+Container classes assemble:
+
+- infrastructure implementations
+- application handlers
+- dependency graphs
+
+Composition packages never contain business behavior.
+
+Their sole responsibility is dependency construction.
+
+---
+
+# 21. Legacy Platform Stub
+
+The repository includes a simplified legacy platform implementation.
+
+The stub platform exists exclusively to preserve:
+
+- dependency relationships
+- execution flow
+- integration contracts
+- architectural context
+
+The stub platform is not intended to reproduce the original production platform.
+
+Only the capabilities required by the repository are implemented.
+
+---
+
+# 22. Dependency Boundaries
+
+Package dependencies follow strict architectural rules.
 
 ```text
-premiumasset.infrastructure
+DDD Module
+
+        │
+
+        ▼
+
+Repository Shared Kernel
+
+        │
+
+        ▼
+
+Legacy Platform Stub
 ```
 
-The Infrastructure Layer provides technical implementations required by the application.
+Additionally:
 
-Typical responsibilities include:
+- DDD modules never depend directly upon other DDD modules.
+- Shared Vertical Slices never depend upon business modules.
+- Shared Infrastructure never depends upon business domains.
+- Business logic never depends upon legacy platform implementation details.
 
-- repository implementations
-- gateway implementations
-- persistence integration
-- platform adapters
-- logging integration
-- legacy platform interaction
-
-Infrastructure implements abstractions defined by higher layers while remaining replaceable where practical.
+These rules preserve architectural consistency across the repository.
 
 ---
 
-# Shared Kernel
+# 23. Future Expansion
 
-The repository adopts a lightweight shared kernel through the `features` package.
+The package organization is designed for repository growth.
 
-Shared functionality is centralized to avoid unnecessary duplication while preserving clear module boundaries.
+Future business capabilities should be introduced as additional DDD modules rather than expanding existing modules beyond their intended responsibility.
 
-Only capabilities that are genuinely reusable should be placed within shared packages.
+Likewise, reusable engineering capabilities shared by multiple modules should be promoted into the Repository Shared Kernel when appropriate.
 
-Business-specific implementation should remain inside the owning domain module.
-
----
-
-# Package Boundaries
-
-The repository follows several boundary rules.
-
-- Business rules belong in the Domain Layer.
-- Application workflows belong in the Application Layer.
-- Infrastructure details belong in the Infrastructure Layer.
-- Stable integration entry points belong in the Presentation Layer.
-- Shared technical capabilities belong in the `features` package.
-- Feature-specific implementation remains localized whenever possible.
-
-These boundaries reduce coupling while improving maintainability and readability.
+This strategy supports long-term maintainability while preserving module independence.
 
 ---
 
-# Dependency Rules
+# 24. Summary
 
-Package dependencies follow these principles:
+The repository package organization reflects architectural responsibility rather than implementation convenience.
 
-- Presentation depends on Application.
-- Application depends on Domain.
-- Infrastructure depends on Domain abstractions.
-- Domain does not depend on Infrastructure.
-- Shared packages should not depend on business-specific modules.
-- Cross-module dependencies should remain explicit and minimal.
+The Repository Shared Kernel provides reusable engineering capabilities.
 
-Maintaining these dependency rules preserves architectural consistency throughout the repository.
+Shared Vertical Slices provide reusable application behavior.
 
----
+DDD modules encapsulate independent business capabilities.
 
-# Summary
+The Legacy Platform Stub supplies the minimal execution environment required to demonstrate repository behavior.
 
-The repository combines feature-oriented organization with layered domain modules.
-
-The `features` package provides reusable capabilities shared across the repository, while `premiumasset` demonstrates a complete Domain-Driven Design module following Clean Architecture principles.
-
-This organization balances modularity, explicit dependency direction, and maintainability while remaining compatible with the surrounding legacy execution environment.
+Together, these architectural regions establish a modular repository that emphasizes explicit dependencies, reusable engineering components, and long-term maintainability.

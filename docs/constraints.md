@@ -1,256 +1,350 @@
-# Constraints
+# Engineering Constraints
 
-## Overview
+**Version:** 2.0
 
-This repository was reconstructed alongside an existing legacy Java platform.
+**Status:** Stable
 
-Its architecture is shaped by the execution environment in which it operates rather than by isolated architectural preference.
-
-Understanding these constraints is essential for understanding why particular implementation decisions were made.
-
-Throughout the repository, environmental limitations are treated as engineering constraints rather than shortcomings to be eliminated.
+**Document Type:** Repository Constraint Specification
 
 ---
 
-# Host Platform
+# 1. Purpose
 
-The surrounding execution environment is based on:
+This document describes the engineering constraints that shaped the repository architecture.
+
+These constraints originate from the surrounding execution environment rather than architectural preference.
+
+Understanding these constraints is essential for interpreting the repository design decisions.
+
+Many implementation choices that may initially appear unconventional become straightforward once the surrounding environment is understood.
+
+---
+
+# 2. Constraint-Driven Architecture
+
+The repository was developed within an existing legacy platform.
+
+Consequently, architecture was not designed in isolation.
+
+Instead, architectural decisions were constrained by the execution environment already established by the host platform.
+
+The repository therefore demonstrates constraint-driven engineering rather than unconstrained greenfield architecture.
+
+---
+
+# 3. Host Platform
+
+The surrounding execution environment provides:
 
 - Java 21
 - Maven
+- existing application lifecycle
+- existing startup process
+- existing runtime contracts
 
-The repository is designed to integrate into an existing application rather than operate as an independent framework or standalone platform.
+The repository integrates into this environment instead of replacing it.
 
-The surrounding platform determines:
+---
+
+# 4. Legacy Platform Ownership
+
+The surrounding platform is considered externally owned.
+
+The repository is not responsible for defining:
 
 - application startup
-- object lifetime
-- dependency composition
-- integration boundaries
-- module initialization
+- runtime lifecycle
+- dependency initialization order
+- process ownership
+- platform infrastructure
 
-Consequently, architectural decisions are constrained by the host platform rather than being selected in isolation.
+These responsibilities remain under host platform control.
 
----
-
-# Dependency Composition
-
-The execution environment does not provide a dependency injection framework.
-
-Introducing one would require invasive modifications throughout the surrounding legacy platform.
-
-For this reason, dependencies are composed explicitly within the repository.
-
-Object graphs are assembled manually inside module-specific Container classes.
-
-This composition strategy provides:
-
-- deterministic initialization
-- explicit dependency graphs
-- observable object construction
-- compatibility with the host platform
-
-The composition model reflects environmental constraints rather than an intentional avoidance of dependency injection frameworks.
+The repository integrates with these responsibilities rather than redefining them.
 
 ---
 
-# Composition Roots
+# 5. Dependency Injection Constraint
 
-Each module defines a dedicated Container class.
+The host platform does not employ a dependency injection framework.
 
-These classes function as module composition roots.
+Introducing one would require widespread modifications throughout the surrounding system.
 
-Their responsibilities include:
+Such modifications fall outside the responsibility of this repository.
 
-- constructing implementation dependencies
-- wiring application handlers
-- exposing initialized application services
-- maintaining explicit dependency graphs
+Therefore dependency composition follows the execution model dictated by the host platform.
 
-Container classes are not dependency injection containers.
-
-They do not perform runtime service discovery.
-
-They do not resolve dependencies dynamically.
-
-Initialization remains entirely explicit.
+This decision reflects environmental compatibility rather than architectural preference.
 
 ---
 
-# No Runtime Dependency Discovery
+# 6. Explicit Composition
 
-The repository intentionally avoids runtime mechanisms such as:
+Because runtime dependency injection is unavailable, dependency graphs are assembled explicitly.
 
-- reflection-based service discovery
-- runtime component scanning
-- automatic dependency registration
+Every dependency remains:
 
-This is a consequence of the surrounding execution environment and its initialization model.
+- deterministic
+- observable
+- visible in source code
+- constructed during startup
 
-Keeping object construction explicit improves predictability and simplifies inspection of dependency relationships.
+Object composition never depends upon:
 
----
-
-# Singleton Lifetime
-
-Implementation classes are generally designed as:
-
-- stateless
-- immutable after construction
-- singleton where appropriate
-
-Singleton access is commonly provided through the Bill Pugh Holder pattern.
-
-This approach allows dependencies to be reused without introducing a dependency injection framework while keeping object lifetime deterministic.
+- runtime scanning
+- reflection
+- automatic registration
+- dependency discovery
 
 ---
 
-# Presentation Layer
+# 7. Composition Ownership
 
-The Presentation Layer serves as the public integration boundary for the surrounding legacy platform.
+Dependency composition is performed by dedicated Container classes.
 
-It is not a web layer.
+Each architectural unit owns its own Composition Root.
 
-It is not coupled to HTTP.
+Containers construct:
 
-It is not responsible for REST APIs.
+- infrastructure implementations
+- application handlers
+- dependency graphs
 
-Instead, presentation classes expose stable application facades that provide entry points into the module.
+Containers do not perform business logic.
 
-Typical responsibilities include:
-
-- parameter validation
-- command construction
-- query construction
-- delegation to application handlers
-- module-level exception routing where applicable
-
-This design preserves a stable public API while isolating internal architectural changes.
+Their responsibility is limited to deterministic dependency composition.
 
 ---
 
-# Legacy Platform Integration
+# 8. Startup Lifecycle
 
-The repository operates alongside an existing legacy system.
+Repository initialization occurs during platform startup.
 
-The surrounding platform owns:
+The host platform explicitly initializes repository containers before normal execution begins.
 
-- application lifecycle
-- startup sequence
+The initialization sequence follows a deterministic order:
+
+```text
+Platform Startup
+
+↓
+
+Container Initialization
+
+↓
+
+Dependency Composition
+
+↓
+
+Repository Ready
+```
+
+Business execution assumes initialization has already completed.
+
+---
+
+# 9. Stable Integration Surface
+
+The repository integrates with an existing platform whose public interaction model already exists.
+
+Consequently, repository entry points are designed to preserve stable integration behavior.
+
+Presentation facades expose static operations suitable for direct invocation by the surrounding platform.
+
+This design minimizes friction between repository architecture and host platform expectations.
+
+---
+
+# 10. Legacy Integration
+
+Infrastructure implementations communicate directly with legacy platform contracts.
+
+These implementations isolate platform-specific behavior from business logic.
+
+As a result:
+
+- business layers remain platform-independent
+- platform dependencies remain localized
+- integration behavior remains replaceable
+
+This isolation is one of the primary responsibilities of the Anti-Corruption Layer.
+
+---
+
+# 11. Repository Sanitization
+
+The public repository is intentionally sanitized.
+
+Sanitization includes:
+
+- package names
+- type names
+- domain terminology
+- platform terminology
+- surrounding system structure
+
+Only naming and contextual information have been generalized.
+
+Architectural behavior, dependency relationships, and implementation strategy remain equivalent to the original system.
+
+---
+
+# 12. Stub Platform
+
+The repository includes a simplified platform implementation.
+
+The stub platform exists solely to preserve:
+
+- architectural context
 - execution flow
-- external models
-- platform-specific infrastructure
+- dependency relationships
+- integration contracts
 
-The repository focuses on translating and isolating these concerns rather than replacing them.
+It is not intended to reproduce the original platform.
 
-The Anti-Corruption Layer protects the domain model from direct exposure to legacy implementation details.
-
----
-
-# Dependency Direction
-
-Although dependency composition is performed manually, architectural dependency direction remains consistent.
-
-The repository follows these principles:
-
-- Presentation depends on Application.
-- Application depends on Domain.
-- Infrastructure implements abstractions defined by higher layers.
-- Domain remains independent of infrastructure implementation.
-
-Manual composition does not alter these dependency relationships.
+Only the capabilities required by the repository are implemented.
 
 ---
 
-# Architectural Implications
+# 13. Business Scope
 
-The environmental constraints lead to several architectural characteristics.
+The repository intentionally contains only a subset of the original engineering work.
 
-## Explicit Object Graphs
+The current public implementation focuses on a single completed DDD module.
 
-All major dependencies are constructed explicitly.
+The surrounding architecture has been designed to support additional modules using the same architectural model.
 
-Object relationships remain visible within the source code rather than being generated by framework infrastructure.
-
----
-
-## Deterministic Initialization
-
-Application initialization follows a predictable sequence.
-
-Dependencies are created intentionally and in a known order.
-
-This simplifies reasoning about application startup and dependency relationships.
+Future modules are expected to integrate without altering the established repository architecture.
 
 ---
 
-## Stable Integration Boundary
+# 14. Shared Kernel Evolution
 
-The surrounding platform interacts with stable facade classes instead of internal implementation classes.
+The Repository Shared Kernel is designed for long-term growth.
 
-This reduces coupling between the host platform and the repository.
+Engineering capabilities that become reusable across multiple modules should be promoted into the Shared Kernel.
 
----
+Conversely, business behavior should remain inside individual DDD modules.
 
-## Replaceable Infrastructure
-
-Infrastructure implementations remain separated from domain logic despite manual composition.
-
-Implementation details can evolve without changing business rules or application orchestration.
+This separation reduces coupling while encouraging engineering reuse.
 
 ---
 
-## Framework Independence
+# 15. Testing Constraint
 
-The repository is not dependent upon a specific dependency injection framework or application framework.
+The original host platform does not include an automated test suite.
 
-This improves portability within environments that cannot adopt additional runtime infrastructure.
+As a consequence, repository extraction could not preserve an existing body of unit or integration tests.
 
-Framework independence should be understood as a consequence of the execution environment rather than a universal architectural recommendation.
+The public repository therefore does not currently include automated tests.
 
----
-
-# Engineering Trade-offs
-
-The chosen composition model introduces both benefits and limitations.
-
-Benefits include:
-
-- explicit dependency relationships
-- deterministic initialization
-- observable object construction
-- compatibility with the surrounding platform
-- reduced framework coupling
-
-Trade-offs include:
-
-- additional composition code
-- manual dependency wiring
-- increased responsibility for composition roots
-- fewer framework-provided lifecycle features
-
-These trade-offs are accepted because they align with the capabilities and limitations of the surrounding execution environment.
+This absence reflects the source environment rather than a position against automated testing.
 
 ---
 
-# Assumptions
+# 16. Testing Strategy
 
-This repository assumes:
+Although automated tests are not currently included, the repository architecture intentionally supports future testing.
 
-- the host platform controls application startup
-- dependency composition occurs during initialization
-- modules are initialized explicitly
-- runtime dependency discovery is unavailable
-- architectural boundaries are enforced through source code organization rather than framework configuration
+Several architectural characteristics facilitate incremental test adoption:
 
-These assumptions remain consistent throughout the repository.
+- explicit dependencies
+- interface-driven design
+- deterministic composition
+- isolated business modules
+- clearly separated responsibilities
+
+These characteristics allow tests to be introduced progressively without significant architectural restructuring.
 
 ---
 
-# Summary
+# 17. Architectural Trade-offs
 
-The repository is intentionally designed around the realities of an existing legacy Java execution environment.
+The repository intentionally accepts several trade-offs imposed by its environment.
 
-Rather than introducing infrastructure that conflicts with the surrounding platform, the implementation adopts explicit manual dependency composition while preserving clear architectural boundaries, deterministic initialization, and maintainable dependency direction.
+Examples include:
 
-The resulting architecture demonstrates how modern design principles can coexist with the practical constraints of integrating into an established legacy system.
+| Constraint | Architectural Response |
+|------------|------------------------|
+| No runtime DI | Explicit composition |
+| Existing startup lifecycle | Startup-driven initialization |
+| Legacy platform contracts | Infrastructure adapters |
+| Existing integration model | Static public facades |
+| Platform ownership | Repository isolation |
+
+Each trade-off prioritizes compatibility with the surrounding platform while preserving architectural clarity.
+
+---
+
+# 18. Performance Considerations
+
+Several implementation choices are influenced by runtime efficiency.
+
+Examples include:
+
+- immutable implementations where practical
+- stateless infrastructure services
+- singleton implementations
+- deterministic object construction
+- reusable engineering components
+
+Performance optimizations remain secondary to correctness and architectural clarity.
+
+Premature optimization is intentionally avoided.
+
+---
+
+# 19. Maintainability
+
+Maintainability is a primary engineering objective.
+
+Architectural constraints are addressed through:
+
+- explicit dependencies
+- deterministic composition
+- reusable engineering facilities
+- structured diagnostics
+- module independence
+- stable public APIs
+
+These characteristics simplify future maintenance despite operating within a constrained environment.
+
+---
+
+# 20. Public Repository Scope
+
+The public repository should be interpreted as an architectural reference implementation.
+
+It is intended to demonstrate:
+
+- architectural organization
+- dependency composition
+- legacy integration
+- repository structure
+- engineering practices
+
+It is not intended to represent the complete surrounding production system.
+
+---
+
+# 21. Assumptions
+
+The repository assumes:
+
+- initialization has completed successfully
+- platform contracts are available
+- execution occurs within the expected host environment
+- infrastructure adapters communicate with compatible platform implementations
+
+Behavior outside these assumptions is considered outside repository scope.
+
+---
+
+# 22. Summary
+
+The repository architecture is primarily shaped by engineering constraints imposed by an existing legacy platform.
+
+Rather than attempting to replace the surrounding environment, the repository integrates with it through explicit dependency composition, stable integration boundaries, reusable engineering facilities, and isolated business modules.
+
+Understanding these constraints explains many architectural decisions that would otherwise appear unusual when viewed outside their original execution context.

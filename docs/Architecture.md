@@ -1,321 +1,456 @@
-# Architecture
+# Repository Architecture
 
-## Overview
+**Version:** 2.0
 
-This repository is a public reference implementation of an Anti-Corruption Layer (ACL) reconstructed alongside an existing legacy Java platform.
+**Status:** Stable
 
-The implementation combines multiple architectural styles that address different responsibilities within the system rather than representing competing architectural choices.
-
-The surrounding execution environment imposes significant constraints on dependency composition and module initialization. Consequently, the repository adopts explicit manual composition while preserving clear architectural boundaries and dependency direction.
-
-The public repository has been intentionally sanitized. Package names, domain terminology, and surrounding platform structures have been generalized while preserving the implementation approach and architectural intent.
+**Document Type:** Repository Architecture Specification
 
 ---
 
-# Architectural Goals
+# 1. Purpose
 
-The repository is designed around the following objectives:
+This document describes the architectural organization of the repository.
 
-- isolate business logic from legacy platform behavior
-- preserve domain boundaries
-- maintain deterministic dependency composition
-- organize functionality into cohesive modules
-- support incremental evolution without modifying the surrounding platform
-- keep application flow explicit and observable
+Rather than documenting individual implementation details, it explains how architectural responsibilities are distributed across the repository, how modules collaborate, and why particular architectural decisions exist.
 
----
+This document serves as the primary architectural reference for the repository.
 
-# Architectural Styles
-
-The repository combines several architectural paradigms.
-
-Each serves a different responsibility within the overall system.
-
-## Anti-Corruption Layer
-
-The Anti-Corruption Layer isolates the domain model from the surrounding legacy platform.
-
-Responsibilities include:
-
-- preventing leakage of legacy models
-- translating external concepts into domain concepts
-- protecting business rules from legacy implementation details
-- reducing coupling to the surrounding platform
-
-The ACL serves as the architectural boundary between the legacy environment and the domain implementation.
+Implementation walkthroughs are intentionally excluded.
 
 ---
 
-## Domain-Driven Design
+# 2. Architectural Overview
 
-Domain-Driven Design provides the primary organizational model.
+The repository is a modular architectural reference implementation demonstrating how an Anti-Corruption Layer (ACL) can be constructed under the constraints of an existing legacy Java platform.
 
-Business capabilities are grouped into domain modules with clearly defined responsibilities.
+Rather than representing a single business module, the repository is organized around two major architectural regions:
 
-Each module encapsulates:
+- Repository Shared Kernel
+- Independent Domain-Driven Design (DDD) Modules
 
-- domain model
-- application services
-- infrastructure implementations
-- presentation façade
+The Shared Kernel provides reusable engineering capabilities.
 
-This organization promotes cohesion while minimizing unnecessary dependencies between unrelated business capabilities.
+DDD modules encapsulate independent business capabilities.
+
+The repository intentionally separates reusable engineering infrastructure from business functionality so that new modules can be introduced without modifying existing modules.
 
 ---
 
-## Clean Architecture
+# 3. Repository Architecture
 
-Within each DDD module, responsibilities follow Clean Architecture principles.
+At the highest level, the repository is organized as follows.
 
 ```text
-Presentation                   Infrastructure
-        │                             │
-        └──────────────┬──────────────┘
-                       ▼
-                  Application
-                       │
-                       ▼
-                     Domain
+Repository
+│
+├── Repository Shared Kernel
+│   │
+│   ├── Shared Engineering Components
+│   ├── Shared Infrastructure
+│   ├── Shared Vertical Slices
+│   └── Shared Abstractions
+│
+└── DDD Modules
+    │
+    ├── PremiumAsset
+    ├── Future Module A
+    ├── Future Module B
+    └── ...
 ```
 
-Dependency direction always points toward the domain model.
+The Shared Kernel forms the engineering foundation of the repository.
 
-The Domain Layer contains business rules without knowledge of application orchestration or infrastructure implementation.
-
-The Application Layer coordinates use cases.
-
-Infrastructure provides implementation details.
-
-Presentation exposes stable entry points for the surrounding legacy platform.
+DDD modules build upon this foundation while remaining isolated from one another.
 
 ---
 
-## Vertical Slice Architecture
+# 4. Repository Identity
 
-Feature-oriented packages organize shared capabilities around individual business concerns.
+This repository should not be interpreted as a single DDD module.
 
-Rather than placing all functionality into broad technical layers, related operations are grouped according to feature boundaries where appropriate.
+Instead, it represents an architectural platform supporting multiple independently evolvable business modules.
 
-This organization improves locality of change while allowing shared infrastructure to remain reusable across modules.
+The current implementation contains one complete DDD module.
 
----
+This module demonstrates the architectural conventions intended for future modules while remaining independent from repository-level infrastructure.
 
-## CQRS
-
-The Application Layer separates command and query responsibilities.
-
-Commands represent operations that modify application state.
-
-Queries represent operations that retrieve information without performing state changes.
-
-CQRS is applied within the application layer only.
-
-It does not imply event sourcing or distributed messaging.
+Consequently, repository documentation primarily describes architectural relationships rather than the internal behavior of a single business module.
 
 ---
 
-# Repository Organization
+# 5. Repository Shared Kernel
 
-The repository consists of two primary areas.
+The Repository Shared Kernel contains reusable engineering capabilities shared by all DDD modules.
+
+Its responsibilities include:
+
+- reusable engineering components
+- reusable infrastructure
+- reusable abstractions
+- reusable application capabilities
+- repository-wide technical consistency
+
+The Shared Kernel intentionally does not contain business-specific logic.
+
+Instead, it provides the common foundation upon which business modules are constructed.
+
+Typical capabilities include:
+
+- structured diagnostics
+- boundary defense
+- validation infrastructure
+- reusable time abstractions
+- reusable numeric utilities
+- reusable functional abstractions
+- logging infrastructure
+- reusable vertical slices
+
+---
+
+# 6. Domain-Driven Design Modules
+
+Business capabilities are implemented as independent DDD modules.
+
+Each module owns its complete internal architecture, including:
+
+- Presentation Layer
+- Application Layer
+- Domain Layer
+- Infrastructure Layer
+- Composition Root
+
+Each module exposes stable public entry points while remaining independent from other modules.
+
+Modules communicate through shared repository capabilities rather than directly referencing one another.
+
+This rule preserves module independence and minimizes coupling.
+
+---
+
+# 7. Hybrid Architecture
+
+The repository intentionally combines multiple architectural approaches.
+
+Each architectural style addresses a different engineering responsibility.
+
+| Architectural Style | Primary Responsibility |
+|----------------------|------------------------|
+| Domain-Driven Design | Business capability modeling |
+| Clean Architecture | Dependency direction and layer boundaries |
+| Vertical Slice Architecture | Reusable application capabilities |
+| CQRS | Separation of application commands and queries |
+| Anti-Corruption Layer | Isolation from legacy platform concepts |
+
+These architectural approaches are complementary.
+
+No individual architectural style attempts to solve every engineering concern addressed by the repository.
+
+---
+
+# 8. Clean Architecture
+
+Each DDD module follows Clean Architecture dependency rules.
+
+Dependencies always point inward.
 
 ```text
-com.dxlan.acl
-│
-├── features
-│
-└── premiumasset
+Presentation
+        │
+        ▼
+Application
+        │
+        ▼
+Domain
+        ▲
+        │
+Infrastructure
 ```
 
-## features
+Business rules remain isolated from infrastructure implementation details.
 
-The `features` package contains shared functionality and feature-oriented components used throughout the repository.
+Infrastructure implements contracts defined by higher architectural layers.
 
-It provides reusable infrastructure and supporting capabilities rather than representing a single DDD module.
-
----
-
-## premiumasset
-
-The `premiumasset` package represents the primary Domain-Driven Design module.
-
-It demonstrates the complete layered architecture consisting of:
-
-- Presentation
-- Application
-- Domain
-- Infrastructure
-
-This module provides the primary reference implementation for the repository's architectural patterns.
+The Domain Layer remains independent of technical concerns.
 
 ---
 
-# Layer Responsibilities
+# 9. Layer Responsibilities
 
 ## Presentation Layer
 
-The Presentation Layer exposes stable application entry points for the surrounding legacy platform.
+Responsible for:
 
-It is not a web layer.
+- exposing stable public APIs
+- validating entry conditions
+- constructing commands and queries
+- coordinating application execution
+- translating exceptions
+- protecting integration boundaries
 
-It is not coupled to HTTP.
+The Presentation Layer is not a web layer.
 
-It does not represent REST controllers.
-
-Presentation classes primarily expose static façade methods.
-
-Typical responsibilities include:
-
-- initial parameter validation
-- construction of commands and queries
-- delegation to application handlers
-- module-level exception routing where applicable
-
-The Presentation Layer provides a stable integration boundary without exposing internal implementation details.
+It represents the public integration boundary of each module.
 
 ---
 
 ## Application Layer
 
-The Application Layer coordinates business use cases.
+Responsible for:
 
-Responsibilities include:
-
-- command handling
-- query handling
+- command handlers
+- query handlers
 - application orchestration
-- transaction coordination where required
-- interaction with repositories and gateways
-- mapping between domain and external models
+- dependency coordination
 
-Application services contain workflow logic but avoid embedding business rules that belong within the domain model.
+Application services coordinate business execution without containing core business rules.
 
 ---
 
 ## Domain Layer
 
-The Domain Layer represents the core business model.
+Responsible for:
 
-Responsibilities include:
+- business concepts
+- business invariants
+- business policies
+- domain specifications
+- domain models
 
-- entities
-- value objects
-- domain services
-- business rules
-- domain validation
-- repository abstractions
-
-The Domain Layer contains no knowledge of infrastructure implementation.
+Business correctness originates within the Domain Layer.
 
 ---
 
 ## Infrastructure Layer
 
-The Infrastructure Layer contains implementation details required by the application.
+Responsible for:
+
+- legacy platform integration
+- persistence
+- external system adaptation
+- implementation of repository contracts
+
+Infrastructure remains replaceable without affecting higher architectural layers.
+
+---
+
+# 10. CQRS
+
+CQRS is applied within the Application Layer.
+
+Commands represent state-changing operations.
+
+Queries represent read-only operations.
+
+Handlers are separated according to responsibility.
+
+This separation improves application clarity while avoiding unnecessary complexity within the Domain Layer.
+
+CQRS is applied selectively where command/query separation provides meaningful architectural value.
+
+---
+
+# 11. Shared Vertical Slices
+
+Reusable application capabilities are implemented as Shared Vertical Slices.
+
+Unlike DDD modules, these slices do not own business domains.
+
+Instead, they encapsulate reusable application operations consumed by multiple modules.
 
 Examples include:
 
-- repository implementations
-- gateway implementations
-- platform adapters
-- persistence integration
-- logging support
-- legacy platform interaction
+- notification delivery
+- inventory synchronization
+- user profile retrieval
 
-Infrastructure depends on domain abstractions rather than reversing dependency direction.
+Each slice owns:
 
----
+- interfaces
+- implementations
+- application handlers
+- composition root
+- stable facade
 
-# Dependency Direction
-
-The repository follows inward dependency flow.
-
-```text
-Presentation                   Infrastructure
-        │                             │
-        └──────────────┬──────────────┘
-                       ▼
-                  Application
-                       │
-                       ▼
-                     Domain
-```
-
-Infrastructure implements abstractions defined by the Domain or Application layers.
-
-Higher-level policies remain independent from lower-level implementation details.
+Shared Vertical Slices provide reusable capabilities without creating direct dependencies between DDD modules.
 
 ---
 
-# Dependency Composition
+# 12. Dependency Rules
 
-The surrounding execution environment determines the dependency composition strategy.
+The repository follows several dependency rules.
 
-No dependency injection framework is employed.
+## Rule 1
 
-No runtime dependency scanning is performed.
+DDD modules never directly reference other DDD modules.
 
-No reflection-based service discovery is used.
-
-Implementation classes are generally:
-
-- stateless
-- immutable after construction
-- singleton where appropriate
-
-Dependencies are assembled explicitly within module-specific Container classes.
-
-This approach keeps object construction deterministic, visible, and straightforward to inspect.
+Instead, reusable functionality is obtained through the Repository Shared Kernel.
 
 ---
 
-# Composition Root
+## Rule 2
 
-Each module defines a dedicated Container class.
+Dependencies always point toward stable abstractions.
 
-Container classes serve as module composition roots.
+Infrastructure implementations satisfy interfaces defined by higher architectural layers.
 
-Their responsibilities include:
+---
+
+## Rule 3
+
+Shared engineering components remain independent of business domains.
+
+---
+
+## Rule 4
+
+Business logic never depends upon legacy platform implementation details.
+
+Legacy concepts are translated before entering the Domain Layer.
+
+---
+
+## Rule 5
+
+Composition occurs only inside explicit composition roots.
+
+Business logic never performs dependency composition.
+
+---
+
+# 13. Dependency Composition
+
+The repository adopts explicit dependency composition.
+
+Object graphs are assembled manually inside module composition roots.
+
+Dependency construction is:
+
+- explicit
+- deterministic
+- observable
+- framework-independent
+
+Dependencies are supplied through constructor injection.
+
+No runtime dependency discovery occurs.
+
+No reflection-based service scanning is performed.
+
+No dependency injection framework participates in object construction.
+
+---
+
+# 14. Composition Roots
+
+Every DDD module owns its own composition root.
+
+Reusable Vertical Slices also own independent composition roots.
+
+Composition roots are responsible only for:
 
 - constructing implementation dependencies
-- wiring application handlers
-- exposing initialized application services
-- maintaining explicit object graphs
+- wiring handlers
+- exposing initialized services
 
-Container classes are not dependency injection containers.
-
-They are not service locators.
-
-Initialization occurs explicitly from the surrounding legacy platform.
+Composition roots never contain business logic.
 
 ---
 
-# Stable Application Facades
+# 15. Static Public Facades
 
-Public entry points are exposed through static façade classes located within the Presentation Layer.
+Public APIs are exposed through static facade classes.
 
-These facades provide a stable integration surface for the surrounding platform while shielding internal architectural changes.
+These facades represent stable integration boundaries for the surrounding legacy platform.
 
-Their responsibilities are limited to coordinating application operations rather than implementing business rules.
+Each facade is responsible for:
 
----
+- validating public inputs
+- creating commands or queries
+- invoking application handlers
+- translating failures
+- preserving stable public APIs
 
-# Architectural Boundaries
+Static facades should not be interpreted as utility classes.
 
-The repository maintains clear separation between:
-
-- legacy platform concerns
-- application orchestration
-- domain behavior
-- infrastructure implementation
-
-Each layer communicates only through well-defined interfaces and dependency direction.
-
-This separation enables incremental evolution of the domain implementation while minimizing coupling to the surrounding legacy platform.
+They exist because the surrounding execution environment does not provide runtime-managed dependency injection or object lifecycle management.
 
 ---
 
-# Summary
+# 16. Exception Architecture
 
-This repository demonstrates how Domain-Driven Design, Clean Architecture, Vertical Slice Architecture, CQRS, and the Anti-Corruption Layer pattern can coexist within the constraints of a legacy Java execution environment.
+Failure handling is divided into multiple architectural responsibilities.
 
-Rather than relying on framework-provided composition, the repository adopts explicit manual dependency composition dictated by the surrounding platform while preserving modularity, deterministic initialization, and clear architectural boundaries.
+Boundary Defense validates architectural boundaries.
+
+Application Validation protects application workflows.
+
+Domain Invariants preserve business correctness.
+
+Presentation Translation converts engineering failures into stable integration responses suitable for the surrounding legacy platform.
+
+Operational diagnostics remain independent from user-facing communication.
+
+This separation improves observability while preserving stable integration behavior.
+
+---
+
+# 17. Legacy Platform Integration
+
+The repository integrates with an existing legacy Java platform.
+
+The surrounding platform determines several architectural constraints, including:
+
+- application startup
+- dependency composition
+- execution lifecycle
+- available infrastructure
+
+The repository adapts to the execution environment rather than attempting to replace it.
+
+Consequently, architectural decisions throughout the repository prioritize compatibility with the surrounding platform while preserving internal architectural consistency.
+
+---
+
+# 18. Stub Platform
+
+The public repository replaces the original surrounding platform with simplified stub implementations.
+
+The stub platform preserves:
+
+- dependency direction
+- execution flow
+- integration boundaries
+- architectural relationships
+
+This allows the repository to remain independently buildable while protecting proprietary implementation details.
+
+---
+
+# 19. Architectural Characteristics
+
+The repository emphasizes:
+
+- explicit composition
+- deterministic startup
+- module independence
+- defensive programming
+- structured diagnostics
+- stable public APIs
+- observable execution
+- reusable engineering components
+- repository-wide consistency
+
+These characteristics guide architectural decisions throughout the repository.
+
+---
+
+# 20. Summary
+
+The repository is not a conventional layered application nor a collection of unrelated utilities.
+
+Instead, it represents a modular architectural platform composed of a Repository Shared Kernel and independently evolvable DDD modules.
+
+Hybrid architecture allows each architectural style to address the engineering concern for which it is best suited.
+
+The resulting architecture emphasizes explicit dependency composition, stable integration boundaries, module independence, and long-term maintainability while operating within the constraints imposed by an existing legacy execution environment.
